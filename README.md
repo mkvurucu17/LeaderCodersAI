@@ -23,10 +23,10 @@ LeaderCoders için geliştirilmiş, Node.js tabanlı akıllı sohbet botu. Bot, 
 git clone https://github.com/mkvurucu17/LeaderCodersAI.git
 cd LeaderCodersAI
 
-2. Gerekli paketleri yükleyin:
+3. Gerekli paketleri yükleyin:
 npm install express cors path
 
-3. Çalıştırın:
+4. Çalıştırın:
 node backend/src/server.js
 
 ## Kullanım
