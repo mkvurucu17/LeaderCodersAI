@@ -21,7 +21,7 @@ LeaderCoders için geliştirilmiş, Node.js tabanlı akıllı sohbet botu. Bot, 
 
 1. Projeyi klonlayın:
 git clone https://github.com/mkvurucu17/LeaderCodersAI.git
-cd CHATBOTCURSOR
+cd LeaderCodersAI
 
 2. Gerekli paketleri yükleyin:
 npm install express cors path
