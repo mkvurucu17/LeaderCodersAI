@@ -88,26 +88,31 @@ class SimpleAI {
                 return "Bir mesaj yazın lütfen.";
             }
 
-            // 1. Kısaltmaları kontrol et
+            console.log('Öğrenme modu durumu:', this.learningMode); // Debug log
+
+            // Öğrenme modundaysa direkt handleLearningMode'a yönlendir
+            if (this.learningMode.active) {
+                console.log('Öğrenme modu aktif, mesaj:', message); // Debug log
+                return this.handleLearningMode(message);
+            }
+
+            // Kısaltmaları kontrol et
             message = this.handleShortcuts(message);
 
-            // 2. Normal pattern'leri kontrol et
+            // Normal pattern'leri kontrol et
             const patternResponse = this.findPatternMatch(message);
             if (patternResponse) {
                 return patternResponse;
             }
 
-            // 3. Öğrenilmiş pattern'leri kontrol et
+            // Öğrenilmiş pattern'leri kontrol et
             const learnedResponse = this.findSimilarQuestion(message);
             if (learnedResponse) {
                 return learnedResponse.answer;
             }
 
-            // 4. Öğrenme modunu başlat
-            if (this.learningMode.active) {
-                return this.handleLearningMode(message);
-            }
-
+            // Hiçbir cevap bulunamadıysa öğrenme modunu başlat
+            console.log('Cevap bulunamadı, öğrenme modu başlatılıyor'); // Debug log
             return this.startLearningMode(message);
 
         } catch (error) {
@@ -155,41 +160,73 @@ class SimpleAI {
 
     // Öğrenme modunu başlat
     startLearningMode(question) {
+        console.log('Öğrenme modu başlatılıyor, soru:', question); // Debug log
         this.learningMode = {
             active: true,
             stage: 'askPermission',
             question: question,
             pendingAnswer: null
         };
-        return "Bu konuyu bilmiyorum. Bana öğretmek ister misiniz? (evet/hayır)";
+        return "Bu soruyu bilmiyorum. Size yardımcı olmak için öğrenmek istiyorum. Bana öğretmek ister misiniz? (evet/hayır)";
     }
 
     // Öğrenme modunu işle
     handleLearningMode(message) {
+        console.log('handleLearningMode çağrıldı:', {
+            stage: this.learningMode.stage,
+            message: message
+        }); // Debug log
+
+        const cleanMessage = message.trim().toLowerCase();
+
         if (this.learningMode.stage === 'askPermission') {
-            if (message.toLowerCase() === 'evet') {
+            if (cleanMessage === 'evet' || cleanMessage === 'e' || cleanMessage === 'yes' || cleanMessage === 'y') {
                 this.learningMode.stage = 'waitingForAnswer';
-                return "Harika! Lütfen cevabı yazın:";
-            } else {
-                this.resetLearningMode();
-                return "Tamam, başka nasıl yardımcı olabilirim?";
+                return "Harika! Lütfen bana doğru cevabı öğretir misiniz?";
             }
+            
+            if (cleanMessage === 'hayır' || cleanMessage === 'h' || cleanMessage === 'no' || cleanMessage === 'n') {
+                this.resetLearningMode();
+                return "Anladım, başka nasıl yardımcı olabilirim?";
+            }
+
+            return "Lütfen sadece 'evet' veya 'hayır' şeklinde cevap verin.";
         }
 
         if (this.learningMode.stage === 'waitingForAnswer') {
+            if (!cleanMessage) {
+                return "Lütfen geçerli bir cevap yazın.";
+            }
+
+            console.log('Yeni cevap öğreniliyor:', {
+                soru: this.learningMode.question,
+                cevap: message
+            }); // Debug log
+
             this.learnNewPattern(this.learningMode.question, message);
             this.resetLearningMode();
-            return "Teşekkürler! Bunu öğrendim. Başka nasıl yardımcı olabilirim?";
+            return "Teşekkür ederim! Bu cevabı öğrendim. Başka nasıl yardımcı olabilirim?";
         }
+
+        this.resetLearningMode();
+        return "Bir hata oluştu, lütfen tekrar deneyin.";
     }
 
     // Yeni pattern öğren
     learnNewPattern(question, answer) {
+        console.log('Yeni pattern kaydediliyor:', { question, answer }); // Debug log
+        
         this.learnedPatterns.set(question, {
             answer: answer,
             timestamp: Date.now()
         });
-        this.saveLearnedPatterns();
+        
+        try {
+            this.saveLearnedPatterns();
+            console.log('Pattern başarıyla kaydedildi');
+        } catch (error) {
+            console.error('Pattern kaydetme hatası:', error);
+        }
     }
 
     // Öğrenilmiş pattern'leri kaydet
